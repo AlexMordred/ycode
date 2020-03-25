@@ -31,7 +31,7 @@
       </b-card>
 
       <b-card class="mt-3" header="New Payment" v-show="show">
-        <b-form @submit="onSubmit">
+        <b-form @submit.prevent="onSubmit">
           <b-form-group id="input-group-1" label="To:" label-for="input-1">
             <b-form-input
               id="input-1"
@@ -87,113 +87,93 @@ export default {
       payment: {},
 
       account: null,
-      transactions: null,
+      transactions: [],
 
       loading: true
     };
   },
 
-  mounted() {
-    const that = this;
-
-    axios
-      .get(`http://localhost:8000/api/accounts/${this.$route.params.id}`)
-      .then(function(response) {
-        if (!response.data.length) {
-          window.location = "/";
-        } else {
-          that.account = response.data[0];
-
-          if (that.account && that.transactions) {
-            that.loading = false;
-          }
-        }
-      });
-
-    axios
-      .get(
-        `http://localhost:8000/api/accounts/${
-          that.$route.params.id
-        }/transactions`
-      )
-      .then(function(response) {
-        that["transactions"] = response.data;
-
-        var transactions = [];
-        for (let i = 0; i < that.transactions.length; i++) {
-          that.transactions[i].amount =
-            (that.account.currency === "usd" ? "$" : "€") +
-            that.transactions[i].amount;
-
-          if (that.account.id != that.transactions[i].to) {
-            that.transactions[i].amount = "-" + that.transactions[i].amount;
-          }
-
-          transactions.push(that.transactions[i]);
-        }
-
-        that.transactions = transactions;
-
-        if (that.account && that.transactions) {
-          that.loading = false;
-        }
-      });
+  async mounted() {
+    this.refreshData();
   },
 
   methods: {
-    onSubmit(evt) {
-      var that = this;
+    async refreshData() {
+      try {
+        await this.fetchAccount();
+      } catch (err) {
+        console.error(err);
 
-      evt.preventDefault();
+        window.location = "/";
 
+        return false;
+      }
+
+      this.fetchTransactions();
+    },
+
+    async fetchAccount() {
+      return new Promise((resolve, reject) => {
+        axios
+          .get(`http://localhost:8000/api/accounts/${this.$route.params.id}`)
+          .then((response) => {
+            if (!response.data.length) {
+              reject('Invalid account!');
+            } else {
+              this.account = response.data[0];
+
+              if (this.account && this.transactions) {
+                this.loading = false;
+              }
+
+              resolve();
+            }
+          });
+      });
+    },
+
+    fetchTransactions() {
+      axios
+        .get(
+          `http://localhost:8000/api/accounts/${
+            this.$route.params.id
+          }/transactions`
+        )
+        .then((response) => {
+          this.transactions.splice(0);
+
+          for (let transaction of response.data) {
+            transaction.amount =
+              (this.account.currency === "usd" ? "$" : "€") +
+              transaction.amount;
+
+            if (this.account.id != transaction.to) {
+              transaction.amount = "-" + transaction.amount;
+            }
+
+            this.transactions.push(transaction);
+          }
+
+          if (this.account && this.transactions) {
+            this.loading = false;
+          }
+        });
+    },
+
+    onSubmit() {
       axios.post(
         `http://localhost:8000/api/accounts/${
           this.$route.params.id
         }/transactions`,
 
         this.payment
-      );
+      )
+      .then((response) => {
+        this.refreshData();
+      });
 
-      that.payment = {};
-      that.show = false;
-
-      // update items
-      setTimeout(() => {
-        axios
-          .get(`http://localhost:8000/api/accounts/${this.$route.params.id}`)
-          .then(function(response) {
-            if (!response.data.length) {
-              window.location = "/";
-            } else {
-              that.account = response.data[0];
-            }
-          });
-
-        axios
-          .get(
-            `http://localhost:8000/api/accounts/${
-              that.$route.params.id
-            }/transactions`
-          )
-          .then(function(response) {
-            that["transactions"] = response.data;
-
-            var transactions = [];
-            for (let i = 0; i < that.transactions.length; i++) {
-              that.transactions[i].amount =
-                (that.account.currency === "usd" ? "$" : "€") +
-                that.transactions[i].amount;
-
-              if (that.account.id != that.transactions[i].to) {
-                that.transactions[i].amount = "-" + that.transactions[i].amount;
-              }
-
-              transactions.push(that.transactions[i]);
-            }
-
-            that.transactions = transactions;
-          });
-      }, 200);
+      this.payment = {};
+      this.show = false;
     }
   }
 };
