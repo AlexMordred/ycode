@@ -139,7 +139,7 @@ export default {
         .then((response) => {
           this.transactions.splice(0);
 
-          for (let transaction of response.data) {
+          for (let transaction of response.data['payload']) {
             transaction.amount =
               (this.account.currency === "usd" ? "$" : "€") +
               transaction.amount;
@@ -152,6 +152,9 @@ export default {
           }
 
           this.loading = false;
+        })
+        .catch((response) => {
+          console.error('Something went wrong! Could not fetch transactions.');
         });
     },
 

@@ -12,4 +12,8 @@ class Transaction extends Model
         'details',
         'amount',
     ];
+
+    protected $hidden = [
+        'updated_at',
+    ];
 }
