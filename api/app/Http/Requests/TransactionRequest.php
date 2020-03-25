@@ -57,6 +57,7 @@ class TransactionRequest extends FormRequest
     public function messages()
     {
         return [
+            'to.exists' => 'Invalid account number.',
             'amount.max' => 'You don\'t have that much money on your account.',
         ];
     }

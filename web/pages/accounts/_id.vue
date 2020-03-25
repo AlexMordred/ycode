@@ -41,6 +41,8 @@
               required
               placeholder="Destination ID"
             ></b-form-input>
+
+            <p v-if="errors['to']" class="text-danger" v-text="errors['to'][0]"></p>
           </b-form-group>
 
           <b-form-group id="input-group-2" label="Amount:" label-for="input-2">
@@ -53,6 +55,8 @@
                 placeholder="Amount"
               ></b-form-input>
             </b-input-group>
+
+            <p v-if="errors['amount']" class="text-danger" v-text="errors['amount'][0]"></p>
           </b-form-group>
 
           <b-form-group id="input-group-3" label="Details:" label-for="input-3">
@@ -63,6 +67,8 @@
               required
               placeholder="Payment details"
             ></b-form-input>
+
+            <p v-if="errors['details']" class="text-danger" v-text="errors['details'][0]"></p>
           </b-form-group>
 
           <b-button type="submit" size="sm" variant="primary">Submit</b-button>
@@ -89,6 +95,7 @@ export default {
       account: null,
       transactions: [],
 
+      errors: [],
       loading: true
     };
   },
@@ -159,6 +166,8 @@ export default {
     },
 
     onSubmit() {
+      this.hideErrors();
+
       axios.post(
         `http://localhost:8000/api/accounts/${
           this.$route.params.id
@@ -167,12 +176,30 @@ export default {
         this.payment
       )
       .then((response) => {
+        this.payment = {};
+        
         this.refreshData();
+      })
+      .catch(({ response }) => {
+        if (response.status == 422) {
+          this.showErrors(response.data.payload);
+
+          this.show = true;
+        } else {
+          alert('Something went wrong! The payment wasn\'t done.');
+        }
       });
 
-      this.payment = {};
       this.show = false;
-    }
+    },
+
+    hideErrors() {
+      this.errors = [];
+    },
+
+    showErrors(errors) {
+      this.errors = errors;
+    },
   }
 };
 </script>
