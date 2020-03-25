@@ -99,6 +99,8 @@ export default {
 
   methods: {
     async refreshData() {
+      this.loading = true;
+
       try {
         await this.fetchAccount();
       } catch (err) {
@@ -117,17 +119,12 @@ export default {
         axios
           .get(`http://localhost:8000/api/accounts/${this.$route.params.id}`)
           .then((response) => {
-            if (!response.data.length) {
-              reject('Invalid account!');
-            } else {
-              this.account = response.data[0];
+            this.account = response.data['payload'];
 
-              if (this.account && this.transactions) {
-                this.loading = false;
-              }
-
-              resolve();
-            }
+            resolve();
+          })
+          .catch((response) => {
+            reject('Invalid account!');
           });
       });
     },
@@ -154,9 +151,7 @@ export default {
             this.transactions.push(transaction);
           }
 
-          if (this.account && this.transactions) {
-            this.loading = false;
-          }
+          this.loading = false;
         });
     },
 
