@@ -22,4 +22,18 @@ class TransactionsController extends Controller
         
         return ApiResponse::response($transactions->toArray());
     }
+
+    public function store(Request $request, $id) {
+        $account = Account::find($id);
+
+        if (!$account) {
+            return ApiResponse::error('Not Found', [], 404);
+        }
+
+        Transaction::create(array_merge($request->all(), [
+            'from' => $id,
+        ]));
+
+        return ApiResponse::created();
+    }
 }

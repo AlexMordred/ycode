@@ -45,4 +45,57 @@ class TransactionsCrudTest extends TestCase
 
         $this->assertEmpty($response->json()['payload']);
     }
+
+    /** @test */
+    public function new_transactions_can_be_created()
+    {
+        $this->assertEquals(0, Transaction::count());
+
+        $accountFrom = factory(Account::class)->create();
+        $accountTo = factory(Account::class)->create();
+
+        $data = [
+            'to' => $accountTo->id,
+            'amount' => 1.0,
+            'details' => 'A dummy transaction',
+        ];
+
+        $this->postJson(route('transactions.store', $accountFrom->id), $data)
+            ->assertStatus(201);
+
+        // Make sure a correct transaction was created
+        $transaction = Transaction::first();
+
+        $this->assertNotNull($transaction);
+
+        $this->assertEquals([
+            $accountFrom->id,
+            $data['to'],
+            $data['amount'],
+            $data['details'],
+        ], [
+            $transaction['id'],
+            $transaction['to'],
+            $transaction['amount'],
+            $transaction['details'],
+        ]);
+
+        // Make sure the balances have been updated
+        $this->assertEquals(
+            $accountFrom->balance - $data['amount'],
+            $accountFrom->fresh()->balance
+        );
+
+        $this->assertEquals(
+            $accountTo->balance + $data['amount'],
+            $accountTo->fresh()->balance
+        );
+    }
+
+    /** @test */
+    public function funds_cannot_be_sent_from_unexisting_accounts()
+    {
+        $this->postJson(route('transactions.store', 123), [])
+            ->assertStatus(404);
+    }
 }

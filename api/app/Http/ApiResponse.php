@@ -35,4 +35,19 @@ class ApiResponse
             'payload' => $payload,
         ], $status);
     }
+
+    /**
+     * Return an 'Item created' response.
+     *
+     * @param string $message
+     * @param array $payload
+     * @return mixed
+     */
+    public static function created(string $message = 'Item created', array $payload = [])
+    {
+        return response()->json([
+            'message' => $message,
+            'payload' => $payload,
+        ], 201);
+    }
 }
