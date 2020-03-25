@@ -26,13 +26,8 @@ Route::get('accounts/{id}', function ($id) {
     return ApiResponse::response($account->toArray());
 })->name('accounts.show');
 
-Route::get('accounts/{id}/transactions', function ($id) {
-    $account = DB::table('transactions')
-             ->whereRaw("`from`=$id OR `to`=$id")
-             ->get();
-
-    return $account;
-});
+Route::get('accounts/{id}/transactions', 'TransactionsController@index')
+    ->name('transactions.index');
 
 Route::post('accounts/{id}/transactions', function (Request $request, $id) {
     $to = $request->input('to');
