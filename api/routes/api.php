@@ -1,5 +1,7 @@
 <?php
 
+use App\Account;
+use App\Http\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -15,12 +17,14 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('accounts/{id}', function ($id) {
-    $account = DB::table('accounts')
-             ->whereRaw("id=$id")
-             ->get();
+    $account = Account::find($id);
 
-    return $account;
-});
+    if (!$account) {
+        return ApiResponse::error('Not Found', [], 404);
+    }
+
+    return ApiResponse::response($account->toArray());
+})->name('accounts.show');
 
 Route::get('accounts/{id}/transactions', function ($id) {
     $account = DB::table('transactions')
