@@ -32,9 +32,9 @@ Route::get('accounts/{id}/transactions', 'TransactionsController@index')
 Route::post('accounts/{id}/transactions', 'TransactionsController@store')
     ->name('transactions.store');
 
-Route::get('currencies', function () {
-    $account = DB::table('currencies')
-              ->get();
+// Route::get('currencies', function () {
+//     $account = DB::table('currencies')
+//               ->get();
 
-    return $account;
-});
+//     return $account;
+// });
