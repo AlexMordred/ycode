@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Account;
 use App\Http\ApiResponse;
+use App\Http\Requests\TransactionRequest;
 use App\Transaction;
 use Illuminate\Http\Request;
 
@@ -23,7 +24,7 @@ class TransactionsController extends Controller
         return ApiResponse::response($transactions->toArray());
     }
 
-    public function store(Request $request, $id) {
+    public function store(TransactionRequest $request, $id) {
         $account = Account::find($id);
 
         if (!$account) {
